@@ -1,0 +1,115 @@
+---
+title: "My Template"
+output: 
+  flexdashboard::flex_dashboard:
+    theme: yeti
+    storyboard: true
+    self_contained: true
+
+---
+
+```{r setup, include=FALSE}
+library(tidyverse) 
+library(inspectdf)
+# create www folder
+fs::dir_create("www/")
+# options for chunks
+knitr::opts_chunk$set(
+  cache = FALSE,
+  echo = TRUE,
+  collapse = FALSE,
+  eval = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  dev = "ragg_png",
+  out.width = '85%',
+  fig.path = "www/",
+  dpi = 320,
+  fig.align = "center",
+  fig.width = 7,
+  fig.height = 5.5,
+  fig.retina = 2
+  )
+# tibble printing
+options(
+  pillar.print_max = 10, 
+  pillar.print_min = 10)
+```
+
+
+### Background {data-commentary-width=350}
+
+"PEN America's Index of School Book Bans lists instances where students' access to books in school libraries and classrooms in the United States was restricted or diminished for either limited or indefinite periods of time, from July 1, 2021 through June 30, 2022. Some of these bans have since been rescinded and some remain in place."		
+
+"PEN America analyzed all relevant news stories on challenges, restrictions, and bans to school library books, curriculum, and classroom libraries anywhere in the United States during the 2021-22 school year. We consulted school district websites, corresponded with librarians, authors, and teachers, and reviewed letters to school districts organized by the National Coalition Against Censorship (NCAC)." 
+
+*** 
+
+https://docs.google.com/spreadsheets/d/1hTs_PB7KuTMBtNMESFEGuK-0abzhNxVv4tgpI5-iKe8/edit#gid=1171606318
+
+### Import {data-commentary-width=350}
+
+I got my data from [here](https://docs.google.com/spreadsheets/d/1hTs_PB7KuTMBtNMESFEGuK-0abzhNxVv4tgpI5-iKe8/edit#gid=1171606318)
+
+```{r import, echo=TRUE} 
+bookban <- readr::read_csv("data/bookban.csv")
+glimpse(bookban)
+```
+
+
+
+
+*** 
+
+### Total Bans per State by Date {data-commentary-width=350}
+
+
+```{r tot_bans_state, echo=TRUE} 
+tot_bans_state <- bookban %>% 
+  group_by(state, date_of_challenge_removal) %>% 
+  summarize(total = n()) %>% 
+  ungroup() %>% 
+  mutate(year = lubridate::year(date_of_challenge_removal))
+glimpse(tot_bans_state)
+```
+
+***
+
+We have calculated the total number of book ban removal challenges per state and date, then displayed them by year. There were 32 different states in the dataset with a total of [138 school districts](https://pen.org/report/banned-usa-growing-movement-to-censor-books-in-schools/). 
+
+### Common Categories {data-commentary-width=350}
+
+```{r inspect_types, echo = FALSE, message=FALSE, warning=FALSE}
+bookban %>% 
+  select(-author, -title, -ends_with("_s")) %>% 
+inspect_cat(df1 = .) %>%
+  show_plot(text_labels= TRUE)
+
+```
+
+
+***
+
+These are the most common values for the categorical variables. The categories of authors, translators and illustrators and book titles have all been removed due to missing information and to enhance data clarity. The light blue portion under orgin_of_challenge represents formal challenges, raised by parents, teachers or advocate groups. The last data portion of type_of_ban represents bans in both libraries and classrooms. 
+
+
+### Graphs by State  
+
+
+```{r, echo = FALSE}
+labs_col <- labs(
+  title = "Book Bans by State",
+  x = "Number of Books Banned", y = "total")
+
+ggp2_col <- ggplot(data = tot_bans_state, 
+     aes(x = total, 
+         y = fct_reorder(.f = as.factor(state), .x = total),
+         fill = state)) + 
+     geom_col(show.legend = FALSE) +
+      facet_wrap(. ~ year)
+ggp2_col + 
+  labs_col
+```
+
+***
+Commentary: Here we have the number of books banned or pending investigation by state. Many states shown have anywhere between one and less than ten books that have been banned/ are pending bans. [States](https://brooklyneagle.com/articles/2022/09/29/banned-in-the-usa-where-are-book-bans-happening/) like Texas (801 bans), Florida (566 bans), Pennsylvania (457 bans) and Tennessee (349 bans) are leading the nation in banned books as a result of recent laws that have been passed. Examples include Florida's 'Don't Say Gay' law and other laws the prevent critical thought or scrutinize parts of American Culture and history, often deemed "offensive". Texas developed similar practices when the updated the standards for Texas Education Agency.  The large number of books banned in Pennsylvania is primarily the result of a single school district, [Central York School District](https://observer-reporter.com/news/pennsylvania-ranks-third-in-states-with-most-banned-books/article_c4aa3238-39c6-11ed-91d9-2f50f8dbee45.html#:~:text=%E2%80%9CThe%20list%20of%20books%20that,%20about%20a%20black%20protagonist.%E2%80%9D),  due to the Board of the District's decision to do so.  
