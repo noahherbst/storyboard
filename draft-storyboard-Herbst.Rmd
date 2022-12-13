@@ -51,8 +51,19 @@ https://docs.google.com/spreadsheets/d/1hTs_PB7KuTMBtNMESFEGuK-0abzhNxVv4tgpI5-i
 
 I got my data from [here](https://docs.google.com/spreadsheets/d/1hTs_PB7KuTMBtNMESFEGuK-0abzhNxVv4tgpI5-iKe8/edit#gid=1171606318)
 
-```{r import, echo=TRUE} 
+```{r import, eval=FALSE} 
 bookban <- readr::read_csv("data/bookban.csv")
+glimpse(bookban)
+```
+  
+  
+  
+  
+```{r import_hide, echo=FALSE, eval=TRUE}
+# import draft-storyboard-herbst.rmd
+bookban <- readr::read_csv("data/bookban.csv")
+# import docs/index.rmd
+# bookban <- readr::read_csv("../data/bookban.csv")
 glimpse(bookban)
 ```
 
